@@ -1,25 +1,35 @@
+/*
+ * @Author: yangtao 212920320@qq.com
+ * @Date: 2023-09-19 07:23:32
+ * @FilePath: \wechat-chatgpt\src\main.ts
+ * @LastEditTime: 2024-07-25 12:44:58
+ * @LastEditors: yangtao 212920320@qq.com
+ * @Description: 
+ */
+
 import { WechatyBuilder } from "wechaty";
 import QRCode from "qrcode";
 import { ChatGPTBot } from "./bot.js";
-import {config} from "./config.js";
+import { config } from "./config.js";
+import http from 'http'
 const chatGPTBot = new ChatGPTBot();
-
-const bot =  WechatyBuilder.build({
+const bot = WechatyBuilder.build({
   name: "wechat-assistant", // generate xxxx.memory-card.json and save login data for the next login
   puppet: "wechaty-puppet-wechat",
   puppetOptions: {
     uos: true
   }
 });
+
+let url = '', code = ''
 async function main() {
   const initializedAt = Date.now()
   bot
     .on("scan", async (qrcode, status) => {
-      const url = `https://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`;
+      url = `https://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`;
+      code = await QRCode.toString(qrcode, { type: "terminal", small: true })
       console.log(`Scan QR Code to login: ${status}\n${url}`);
-      console.log(
-        await QRCode.toString(qrcode, { type: "terminal", small: true })
-      );
+      console.log(code);
     })
     .on("login", async (user) => {
       chatGPTBot.setBotName(user.name());
@@ -42,8 +52,13 @@ async function main() {
         console.error(e);
       }
     });
+
   try {
     await bot.start();
+    http.createServer(async function (request, response) {
+      response.writeHead(200, { 'Content-Type': 'text/plain; charset=UTF-8' });
+      response.end(`地址:${url}\n${code}`);
+    }).listen(9000);
   } catch (e) {
     console.error(
       `⚠️ Bot start failed, can you log in through wechat on the web?: ${e}`
@@ -51,3 +66,5 @@ async function main() {
   }
 }
 main();
+
+
