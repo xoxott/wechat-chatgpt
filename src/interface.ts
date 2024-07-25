@@ -1,4 +1,4 @@
-import {ChatCompletionRequestMessage} from "openai";
+import { ChatCompletionRequestMessage } from "openai";
 
 export interface IConfig {
   api?: string;
@@ -10,6 +10,7 @@ export interface IConfig {
   blockWords: string[];
   chatgptBlockWords: string[];
   chatPrivateTriggerKeyword: string;
+  port: number
 }
 export interface User {
   username: string,
